@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HookRelay - Webhook Inspector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .request-row { transition: background-color 0.3s; }
+        .request-row.new { background-color: rgb(254 249 195); }
+        pre { white-space: pre-wrap; word-break: break-all; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-900">HookRelay</h1>
+            <span class="text-sm text-gray-500">Webhook Inspector & Relay</span>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-6 py-8" id="app">
+        <!-- No endpoint state -->
+        <div id="setup" class="text-center py-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Inspect webhooks in real-time</h2>
+            <p class="text-gray-600 mb-8">Get a unique URL, send webhooks to it, see them appear instantly.</p>
+            <button onclick="quickStart()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                Create Endpoint
+            </button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+            <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-500">Your webhook URL</span>
+                    <div class="flex gap-2">
+                        <span id="status-dot" class="inline-block w-2 h-2 rounded-full bg-green-500 mt-1.5"></span>
+                        <span class="text-sm text-green-600">Listening</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <code id="hook-url" class="flex-1 bg-gray-100 px-4 py-2 rounded text-sm font-mono"></code>
+                    <button onclick="copyURL()" class="bg-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-300 transition">Copy</button>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">API Key: <code id="api-key-display" class="bg-gray-100 px-1 rounded"></code></p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Request list -->
+                <div class="col-span-1">
+                    <h3 class="font-medium text-gray-700 mb-3">Incoming Requests <span id="req-count" class="text-gray-400">(0)</span></h3>
+                    <div id="request-list" class="space-y-2 max-h-[600px] overflow-y-auto">
+                        <p class="text-gray-400 text-sm text-center py-8">Waiting for webhooks...</p>
+                    </div>
+                </div>
+
+                <!-- Request detail -->
+                <div class="col-span-2">
+                    <div id="request-detail" class="bg-white rounded-lg border border-gray-200 p-4">
+                        <p class="text-gray-400 text-center py-8">Select a request to view details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = { endpointID: null, apiKey: null, requests: [], eventSource: null };
+
+        function quickStart() {
+            fetch('/api/quick', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    state.endpointID = data.endpoint.id;
+                    state.apiKey = data.api_key;
+                    localStorage.setItem('hookrelay', JSON.stringify({ endpointID: state.endpointID, apiKey: state.apiKey }));
+                    showDashboard();
+                    connectSSE();
+                    loadHistory();
+                });
+        }
+
+        function showDashboard() {
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            const baseURL = window.location.origin;
+            document.getElementById('hook-url').textContent = baseURL + '/hook/' + state.endpointID;
+            document.getElementById('api-key-display').textContent = state.apiKey;
+        }
+
+        function connectSSE() {
+            if (state.eventSource) state.eventSource.close();
+            state.eventSource = new EventSource('/api/endpoints/' + state.endpointID + '/stream');
+            state.eventSource.onmessage = (e) => {
+                const req = JSON.parse(e.data);
+                state.requests.unshift(req);
+                renderRequests();
+            };
+        }
+
+        function loadHistory() {
+            fetch('/api/endpoints/' + state.endpointID + '/requests')
+                .then(r => r.json())
+                .then(data => {
+                    state.requests = data;
+                    renderRequests();
+                });
+        }
+
+        function renderRequests() {
+            const list = document.getElementById('request-list');
+            const count = document.getElementById('req-count');
+            count.textContent = '(' + state.requests.length + ')';
+
+            if (state.requests.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">Waiting for webhooks...</p>';
+                return;
+            }
+
+            list.innerHTML = state.requests.map((r, i) => `
+                <div class="request-row bg-white border border-gray-200 rounded p-3 cursor-pointer hover:border-blue-300 ${i === 0 ? 'new' : ''}"
+                     onclick="showDetail('${r.id}')">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-mono font-medium px-2 py-0.5 rounded ${methodColor(r.method)}">${r.method}</span>
+                        <span class="text-xs text-gray-400">${timeAgo(r.received_at)}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1 truncate">${r.size} bytes</div>
+                </div>
+            `).join('');
+
+            setTimeout(() => document.querySelectorAll('.request-row.new').forEach(el => el.classList.remove('new')), 1500);
+        }
+
+        function showDetail(id) {
+            const req = state.requests.find(r => r.id === id);
+            if (!req) return;
+
+            let bodyDisplay = req.body;
+            try { bodyDisplay = JSON.stringify(JSON.parse(req.body), null, 2); } catch {}
+
+            document.getElementById('request-detail').innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <span class="font-mono font-medium px-2 py-0.5 rounded ${methodColor(req.method)}">${req.method}</span>
+                        <span class="text-sm text-gray-500 ml-2">${req.path}</span>
+                    </div>
+                    <button onclick="replayRequest('${req.id}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 transition">
+                        Replay
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-500 mb-1">Headers</h4>
+                    <pre class="bg-gray-50 rounded p-3 text-xs max-h-48 overflow-auto">${Object.entries(req.headers || {}).map(([k,v]) => k + ': ' + v).join('\n')}</pre>
+                </div>
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-500 mb-1">Body (${req.size} bytes)</h4>
+                    <pre class="bg-gray-50 rounded p-3 text-xs max-h-96 overflow-auto">${escapeHtml(bodyDisplay)}</pre>
+                </div>
+                ${req.query ? `<div><h4 class="text-sm font-medium text-gray-500 mb-1">Query</h4><pre class="bg-gray-50 rounded p-3 text-xs">${escapeHtml(req.query)}</pre></div>` : ''}
+                <div class="text-xs text-gray-400 mt-4">ID: ${req.id} | From: ${req.ip} | ${new Date(req.received_at).toLocaleString()}</div>
+            `;
+        }
+
+        function replayRequest(id) {
+            const url = prompt('Replay to URL:', 'http://localhost:3000/webhook');
+            if (!url) return;
+            fetch('/api/requests/' + id + '/replay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            })
+            .then(r => r.json())
+            .then(data => alert('Replay response: ' + data.status + '\n' + (data.body || '').substring(0, 200)));
+        }
+
+        function copyURL() {
+            navigator.clipboard.writeText(document.getElementById('hook-url').textContent);
+        }
+
+        function methodColor(m) {
+            const colors = { POST: 'bg-green-100 text-green-700', GET: 'bg-blue-100 text-blue-700', PUT: 'bg-yellow-100 text-yellow-700', DELETE: 'bg-red-100 text-red-700', PATCH: 'bg-purple-100 text-purple-700' };
+            return colors[m] || 'bg-gray-100 text-gray-700';
+        }
+
+        function timeAgo(ts) {
+            const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+            if (s < 60) return s + 's ago';
+            if (s < 3600) return Math.floor(s/60) + 'm ago';
+            return Math.floor(s/3600) + 'h ago';
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // Restore session
+        const saved = localStorage.getItem('hookrelay');
+        if (saved) {
+            const { endpointID, apiKey } = JSON.parse(saved);
+            state.endpointID = endpointID;
+            state.apiKey = apiKey;
+            showDashboard();
+            connectSSE();
+            loadHistory();
+        }
+    </script>
+</body>
+</html>
