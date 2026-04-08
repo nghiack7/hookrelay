@@ -76,6 +76,15 @@ func migrate(db *sql.DB) error {
 
 		CREATE INDEX IF NOT EXISTS idx_requests_endpoint_id ON requests(endpoint_id);
 		CREATE INDEX IF NOT EXISTS idx_requests_received_at ON requests(received_at);
+
+		CREATE TABLE IF NOT EXISTS users (
+			api_key TEXT PRIMARY KEY,
+			plan TEXT NOT NULL DEFAULT 'free',
+			stripe_id TEXT NOT NULL DEFAULT '',
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_users_stripe_id ON users(stripe_id);
 	`)
 	return err
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/nghiack7/hookrelay/internal/api"
+	"github.com/nghiack7/hookrelay/internal/billing"
 	"github.com/nghiack7/hookrelay/internal/sse"
 	"github.com/nghiack7/hookrelay/internal/store"
 )
@@ -41,7 +42,8 @@ func main() {
 	defer db.Close()
 
 	hub := sse.NewHub()
-	a := api.New(db, hub)
+	stripeCfg := billing.LoadConfig()
+	a := api.New(db, hub, stripeCfg)
 
 	mux := http.NewServeMux()
 	a.Register(mux)

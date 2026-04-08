@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HookRelay - Webhook Inspector</title>
+    <title>HookRelay - Webhook Inspector & Relay</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .request-row { transition: background-color 0.3s; }
@@ -14,52 +14,151 @@
 <body class="bg-gray-50 min-h-screen">
     <nav class="bg-white border-b border-gray-200 px-6 py-4">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <h1 class="text-xl font-bold text-gray-900">HookRelay</h1>
-            <span class="text-sm text-gray-500">Webhook Inspector & Relay</span>
+            <a href="/" class="text-xl font-bold text-gray-900">HookRelay</a>
+            <div class="flex items-center gap-4">
+                <a href="#pricing" class="text-sm text-gray-600 hover:text-gray-900">Pricing</a>
+                <span id="nav-plan" class="hidden text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium"></span>
+            </div>
         </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto px-6 py-8" id="app">
-        <!-- No endpoint state -->
-        <div id="setup" class="text-center py-16">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Inspect webhooks in real-time</h2>
-            <p class="text-gray-600 mb-8">Get a unique URL, send webhooks to it, see them appear instantly.</p>
-            <button onclick="quickStart()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
-                Create Endpoint
+    <!-- Landing page -->
+    <div id="landing" class="max-w-6xl mx-auto px-6">
+        <div class="text-center py-20">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Inspect webhooks in real-time</h1>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Get a unique URL, send webhooks to it, see them appear instantly.
+                Replay to your local dev server with one click.
+            </p>
+            <button onclick="quickStart()" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-blue-700 transition shadow-lg">
+                Get Started Free
             </button>
+            <p class="text-sm text-gray-400 mt-3">No signup required. Instant endpoint.</p>
         </div>
 
-        <!-- Dashboard -->
-        <div id="dashboard" class="hidden">
-            <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-500">Your webhook URL</span>
+        <!-- Features -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 py-12">
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="text-2xl mb-3">&#9889;</div>
+                <h3 class="font-semibold text-gray-900 mb-2">Real-time Streaming</h3>
+                <p class="text-gray-600 text-sm">Webhooks appear instantly via Server-Sent Events. No polling, no refresh.</p>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="text-2xl mb-3">&#128269;</div>
+                <h3 class="font-semibold text-gray-900 mb-2">Full Inspection</h3>
+                <p class="text-gray-600 text-sm">Headers, body, query params, IP address, timing. Everything you need to debug.</p>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="text-2xl mb-3">&#128260;</div>
+                <h3 class="font-semibold text-gray-900 mb-2">Replay Anywhere</h3>
+                <p class="text-gray-600 text-sm">Forward captured webhooks to localhost, staging, or any URL with one click.</p>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="py-12">
+            <h2 class="text-2xl font-bold text-center text-gray-900 mb-8">How it works</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div class="text-center">
+                    <div class="bg-blue-100 text-blue-700 w-10 h-10 rounded-full flex items-center justify-center font-bold mx-auto mb-3">1</div>
+                    <h4 class="font-medium text-gray-900 mb-1">Get your URL</h4>
+                    <p class="text-sm text-gray-600">Click the button, get a unique webhook URL instantly.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-blue-100 text-blue-700 w-10 h-10 rounded-full flex items-center justify-center font-bold mx-auto mb-3">2</div>
+                    <h4 class="font-medium text-gray-900 mb-1">Point your webhooks</h4>
+                    <p class="text-sm text-gray-600">Use the URL in Stripe, Shopify, GitHub, or any webhook source.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-blue-100 text-blue-700 w-10 h-10 rounded-full flex items-center justify-center font-bold mx-auto mb-3">3</div>
+                    <h4 class="font-medium text-gray-900 mb-1">Inspect & replay</h4>
+                    <p class="text-sm text-gray-600">See every request in real-time. Replay to your local server.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div id="pricing" class="py-16">
+            <h2 class="text-2xl font-bold text-center text-gray-900 mb-2">Simple pricing</h2>
+            <p class="text-center text-gray-500 mb-10">Start free, upgrade when you need more.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-1">Free</h3>
+                    <div class="text-3xl font-bold text-gray-900 mb-4">$0</div>
+                    <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                        <li>1 endpoint</li>
+                        <li>100 requests history</li>
+                        <li>24-hour retention</li>
+                        <li>Real-time streaming</li>
+                        <li>Replay to any URL</li>
+                    </ul>
+                    <button onclick="quickStart()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition">Get Started</button>
+                </div>
+                <div class="bg-white rounded-xl border-2 border-blue-500 p-6 relative">
+                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full">Popular</span>
+                    <h3 class="font-semibold text-gray-900 mb-1">Pro</h3>
+                    <div class="text-3xl font-bold text-gray-900 mb-4">$9<span class="text-base font-normal text-gray-500">/mo</span></div>
+                    <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                        <li>10 endpoints</li>
+                        <li>10,000 requests history</li>
+                        <li>30-day retention</li>
+                        <li>Everything in Free</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button onclick="upgrade('pro')" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition">Upgrade to Pro</button>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-1">Team</h3>
+                    <div class="text-3xl font-bold text-gray-900 mb-4">$29<span class="text-base font-normal text-gray-500">/mo</span></div>
+                    <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                        <li>50 endpoints</li>
+                        <li>50,000 requests history</li>
+                        <li>90-day retention</li>
+                        <li>Everything in Pro</li>
+                        <li>Team sharing</li>
+                    </ul>
+                    <button onclick="upgrade('team')" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition">Upgrade to Team</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-gray-200 py-8 text-center text-sm text-gray-400">
+            Built by <a href="https://nghia-nguyen.pages.dev" class="text-gray-600 hover:underline">Nghia Nguyen</a>.
+            Open source on <a href="https://github.com/nghiack7/hookrelay" class="text-gray-600 hover:underline">GitHub</a>.
+        </footer>
+    </div>
+
+    <!-- Dashboard (hidden by default) -->
+    <div id="dashboard" class="hidden max-w-6xl mx-auto px-6 py-8">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-500">Your webhook URL</span>
+                <div class="flex items-center gap-4">
                     <div class="flex gap-2">
                         <span id="status-dot" class="inline-block w-2 h-2 rounded-full bg-green-500 mt-1.5"></span>
                         <span class="text-sm text-green-600">Listening</span>
                     </div>
+                    <button onclick="resetSession()" class="text-xs text-gray-400 hover:text-red-500">Reset</button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <code id="hook-url" class="flex-1 bg-gray-100 px-4 py-2 rounded text-sm font-mono"></code>
-                    <button onclick="copyURL()" class="bg-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-300 transition">Copy</button>
-                </div>
-                <p class="text-xs text-gray-400 mt-2">API Key: <code id="api-key-display" class="bg-gray-100 px-1 rounded"></code></p>
             </div>
+            <div class="flex items-center gap-2">
+                <code id="hook-url" class="flex-1 bg-gray-100 px-4 py-2 rounded text-sm font-mono"></code>
+                <button onclick="copyURL()" id="copy-btn" class="bg-gray-200 px-3 py-2 rounded text-sm hover:bg-gray-300 transition">Copy</button>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">API Key: <code id="api-key-display" class="bg-gray-100 px-1 rounded"></code></p>
+        </div>
 
-            <div class="grid grid-cols-3 gap-6">
-                <!-- Request list -->
-                <div class="col-span-1">
-                    <h3 class="font-medium text-gray-700 mb-3">Incoming Requests <span id="req-count" class="text-gray-400">(0)</span></h3>
-                    <div id="request-list" class="space-y-2 max-h-[600px] overflow-y-auto">
-                        <p class="text-gray-400 text-sm text-center py-8">Waiting for webhooks...</p>
-                    </div>
+        <div class="grid grid-cols-3 gap-6">
+            <div class="col-span-1">
+                <h3 class="font-medium text-gray-700 mb-3">Incoming Requests <span id="req-count" class="text-gray-400">(0)</span></h3>
+                <div id="request-list" class="space-y-2 max-h-[600px] overflow-y-auto">
+                    <p class="text-gray-400 text-sm text-center py-8">Waiting for webhooks...</p>
                 </div>
-
-                <!-- Request detail -->
-                <div class="col-span-2">
-                    <div id="request-detail" class="bg-white rounded-lg border border-gray-200 p-4">
-                        <p class="text-gray-400 text-center py-8">Select a request to view details</p>
-                    </div>
+            </div>
+            <div class="col-span-2">
+                <div id="request-detail" class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-gray-400 text-center py-8">Select a request to view details</p>
                 </div>
             </div>
         </div>
@@ -82,11 +181,38 @@
         }
 
         function showDashboard() {
-            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('landing').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             const baseURL = window.location.origin;
             document.getElementById('hook-url').textContent = baseURL + '/hook/' + state.endpointID;
             document.getElementById('api-key-display').textContent = state.apiKey;
+            loadPlan();
+        }
+
+        function loadPlan() {
+            fetch('/api/billing/plan', { headers: { 'X-API-Key': state.apiKey } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.plan !== 'free') {
+                        const el = document.getElementById('nav-plan');
+                        el.textContent = data.plan.toUpperCase();
+                        el.classList.remove('hidden');
+                    }
+                }).catch(() => {});
+        }
+
+        function upgrade(plan) {
+            if (!state.apiKey) { quickStart(); return; }
+            fetch('/api/billing/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-API-Key': state.apiKey },
+                body: JSON.stringify({ plan })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.url) window.location.href = data.url;
+                else if (data.error) alert(data.error);
+            });
         }
 
         function connectSSE() {
@@ -102,22 +228,17 @@
         function loadHistory() {
             fetch('/api/endpoints/' + state.endpointID + '/requests')
                 .then(r => r.json())
-                .then(data => {
-                    state.requests = data;
-                    renderRequests();
-                });
+                .then(data => { state.requests = data; renderRequests(); });
         }
 
         function renderRequests() {
             const list = document.getElementById('request-list');
             const count = document.getElementById('req-count');
             count.textContent = '(' + state.requests.length + ')';
-
             if (state.requests.length === 0) {
                 list.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">Waiting for webhooks...</p>';
                 return;
             }
-
             list.innerHTML = state.requests.map((r, i) => `
                 <div class="request-row bg-white border border-gray-200 rounded p-3 cursor-pointer hover:border-blue-300 ${i === 0 ? 'new' : ''}"
                      onclick="showDetail('${r.id}')">
@@ -128,26 +249,21 @@
                     <div class="text-xs text-gray-500 mt-1 truncate">${r.size} bytes</div>
                 </div>
             `).join('');
-
             setTimeout(() => document.querySelectorAll('.request-row.new').forEach(el => el.classList.remove('new')), 1500);
         }
 
         function showDetail(id) {
             const req = state.requests.find(r => r.id === id);
             if (!req) return;
-
             let bodyDisplay = req.body;
             try { bodyDisplay = JSON.stringify(JSON.parse(req.body), null, 2); } catch {}
-
             document.getElementById('request-detail').innerHTML = `
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <span class="font-mono font-medium px-2 py-0.5 rounded ${methodColor(req.method)}">${req.method}</span>
                         <span class="text-sm text-gray-500 ml-2">${req.path}</span>
                     </div>
-                    <button onclick="replayRequest('${req.id}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 transition">
-                        Replay
-                    </button>
+                    <button onclick="replayRequest('${req.id}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200">Replay</button>
                 </div>
                 <div class="mb-4">
                     <h4 class="text-sm font-medium text-gray-500 mb-1">Headers</h4>
@@ -171,11 +287,21 @@
                 body: JSON.stringify({ url })
             })
             .then(r => r.json())
-            .then(data => alert('Replay response: ' + data.status + '\n' + (data.body || '').substring(0, 200)));
+            .then(data => alert('Replay status: ' + data.status));
         }
 
         function copyURL() {
             navigator.clipboard.writeText(document.getElementById('hook-url').textContent);
+            const btn = document.getElementById('copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 1500);
+        }
+
+        function resetSession() {
+            if (!confirm('Reset your session? You will lose your current endpoint.')) return;
+            localStorage.removeItem('hookrelay');
+            if (state.eventSource) state.eventSource.close();
+            location.reload();
         }
 
         function methodColor(m) {
